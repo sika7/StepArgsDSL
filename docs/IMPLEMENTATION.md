@@ -95,8 +95,15 @@ function parseStepArgsScript(input: string, options?: ParseOptions): FullParseRe
 interface ParseOptions {
   validate?: boolean; // エラー検証を実行（デフォルト: false）
   strict?: boolean; // 警告もエラー扱い（デフォルト: false）
+  limits?: LengthLimits; // 長さ制限（デフォルト: 制限なし）
 }
-```
+
+interface LengthLimits {
+  stepName?: number;     // ステップ名の最大文字数（デフォルト: 制限なし）
+  argName?: number;      // 引数名の最大文字数（デフォルト: 制限なし）
+  argValueSingle?: number; // 単行引数値の最大文字数（デフォルト: 制限なし）
+  argValueMulti?: number;  // 複数行引数値の最大文字数（デフォルト: 制限なし）
+}
 
 **戻り値**:
 
@@ -144,12 +151,33 @@ if (!strictResult.validation?.isValid) {
   throw new Error("構文エラーでパース停止");
 }
 
-// 4. エラー検証のみ
+// 4. 長さ制限付きパース（セキュリティ重視）
+const secureResult = parseStepArgsScript(dslText, {
+  validate: true,
+  limits: {
+    stepName: 128,
+    argName: 64,
+    argValueSingle: 16384,
+    argValueMulti: 1048576
+  }
+});
+
+// 5. Web UI向け緩い制限
+const webResult = parseStepArgsScript(dslText, {
+  validate: true,
+  limits: {
+    stepName: 200,    // UI表示に適したサイズ
+    argName: 100,
+    argValueSingle: 50000
+    // argValueMultiは制限なし
+  }
+});
+
+// 6. エラー検証のみ
 const validation = validateStepArgsScript(dslText);
 validation.errors.forEach(err => {
   console.error(`${err.line}行目: ${err.message}`);
 });
-```
 
 ## 🚨 エラーハンドリング仕様
 
@@ -168,6 +196,9 @@ validation.errors.forEach(err => {
 | `EMPTY_STEP_BLOCK`        | ステップに引数が1つも定義されていない      | 🟡 警告   | `--- 検索 ---`の後に引数行なし            |
 | `INVALID_ESCAPE_SEQUENCE` | 定義されていないエスケープシーケンス       | 🔴 エラー | `\z`や`\q`など未定義のエスケープ          |
 | `UNTERMINATED_ESCAPE`     | 行末でバックスラッシュが未完了             | 🔴 エラー | `ステップ[引数:値\]`（行末エスケープ）    |
+| `STEP_NAME_TOO_LONG`      | ステップ名が指定された最大長を超過           | 🔴 エラー | `--- 非常に長いステップ名... ---`（128文字超過） |
+| `ARG_NAME_TOO_LONG`       | 引数名が指定された最大長を超過             | 🔴 エラー | `非常に長い引数名...[省略:...]`（64文字超過） |
+| `ARG_VALUE_TOO_LONG`      | 引数値が指定された最大長を超過             | 🔴 エラー | 単行16KBまたは複数行1MB超過          |
 | `UNRECOGNIZED_SYNTAX`     | 認識できない構文行                         | 🟡 警告   | `不正な構文行`                            |
 
 ### エラー情報構造
