@@ -11,6 +11,7 @@
 - ✅ **正規表現対応**: 高速プロトタイピングに最適
 - ✅ **構造化実行**: 関数呼び出し、ワークフロー、ツールチェーンに適用可能
 - ✅ **人間が読みやすい**: 非技術者やドキュメント作成に最適
+- ✅ **複数行対応**: 長いテキスト、JSON、構造化データを自然に扱える
 
 ## 🔧 構文概要
 
@@ -20,97 +21,137 @@
 
 ### 🔢 引数
 
+#### 単一行引数
+
 引数は以下の形式で記述します：
 
-```
+```text
 ステップ名[引数名:引数値]
+```
+
+#### 複数行引数（Heredoc形式）
+
+長いコンテンツには、heredoc構文を使用します：
+
+```text
+ステップ名[引数名:<<<
+複数行の内容
+改行を含む
+>>>]
 ```
 
 ### ✅ 例
 
-```
---- Translate ---
+#### 基本的な使用法
+
+```text
+— Translate —
 Translate[sourceLanguage:Japanese]
 Translate[targetLanguage:English]
 Translate[text:こんにちは、世界]
 
---- Summarize ---
+— Summarize —
 Summarize[maxLength:100]
+```
+
+#### 複数行コンテンツ
+
+```text
+— DocumentProcessing —
+DocumentProcessing[content:<<<
+人工知能（AI）は近年急速に進歩しています。
+機械学習、深層学習、自然言語処理は
+様々な分野で顕著な進歩を見せています。
+
+大規模言語モデル（LLM）の登場により、
+人間のようなテキスト生成と理解能力が可能になりました。
+
+>>>]
+DocumentProcessing[outputFormat:markdown]
+
+— APIConfiguration —
+APIConfiguration[endpoint:https://api.example.com/v1/chat]
+APIConfiguration[requestBody:<<<
+{
+  "model": "claude-4-sonnet",
+  "messages": [
+    {
+    "role": "user",
+    "content": "Hello, world!"
+    }
+  ],
+  "max_tokens": 1000
+}
+>>>]
 ```
 
 ## 📘 文法（正規表現）
 
-| 要素             | 正規表現パターン         |
-| ---------------- | ------------------------ |
-| ステップヘッダー | `^---\s*(.+?)\s*---$`    |
-| 引数行           | `^(\S+)\[(.+?):(.+?)\]$` |
+| 要素               | 正規表現パターン                  |
+| ------------------ | --------------------------------- |
+| ステップヘッダー   | `^---\s*(.+?)\s*---$`             |
+| 単一行引数         | `^(\S+)\[([^:]+):([^<].+)\]$`     |
+| 複数行開始         | `^(\S+)\[([^:]+):<<<\s*$`         |
+| 複数行終了         | `^>>>\]$`                         |
 
 ## 🧪 サンプル使用例
 
 ### 🧠 タスク分解・関数実行
 
-```
---- Search ---
+```text
+— Search —
 Search[keywords:教育におけるAI]
 Search[limit:5]
 
---- Summarize ---
+— Summarize —
 Summarize[maxLength:300]
 
---- Translate ---
+— Translate —
 Translate[targetLanguage:English]
 ```
 
-### 📈 データ分析
+### 📈 複雑な設定でのデータ分析
 
-```
---- LoadData ---
-LoadData[filename:data.csv]
-LoadData[range:2024-Q1]
+```text
+— DataAnalysis —
+DataAnalysis[config:<<<
+{
+"source": "analytics.csv",
+"filters": {
+"date_range": "2024-01-01,2024-12-31",
+"categories": ["tech", "business"]
+},
+"output": {
+"format": "chart",
+"type": "line_graph"
+}
+}
 
---- PlotGraph ---
-PlotGraph[type:line]
-PlotGraph[xAxis:date]
-PlotGraph[yAxis:sales]
+>>>]
+DataAnalysis[chartTitle:2024年売上トレンド]
 ```
 
 ### 🤖 LLMプロンプトチェーン
 
-```
---- GenerateOutline ---
+```text
+— GenerateOutline —
 GenerateOutline[title:ロボティクスの未来]
 
---- WriteSection ---
+— WriteSection —
 WriteSection[section:はじめに]
 WriteSection[length:150]
+WriteSection[content:<<<
+ロボティクス技術は近年大きく進歩しており、
+人工知能、センサー技術、計算能力の向上に支えられています。
+この変革は製造業からヘルスケアまで、
+様々な産業を再構築しています。
+
+>>>]
 ```
 
-## 🔄 パーサー例（TypeScript）
+## 🔄 パーサー実装（TypeScript）
 
-```typescript
-function parseSteps(input: string): Record<string, Record<string, string>> {
-  const lines = input.split("\n");
-  const result = {};
-  let currentStep = "";
-
-  for (const line of lines) {
-    const stepMatch = line.match(/^---\s*(.+?)\s*---$/);
-    if (stepMatch) {
-      currentStep = stepMatch[1];
-      result[currentStep] = {};
-      continue;
-    }
-
-    const argMatch = line.match(/^(\S+)\[(.+?):(.+?)\]$/);
-    if (argMatch && argMatch[1] === currentStep) {
-      const [, , key, val] = argMatch;
-      result[currentStep][key.trim()] = val.trim();
-    }
-  }
-
-  return result;
-}
-```
+[main.ts](./src/ts/main.ts)
 
 ## 📦 使用ケース
 
