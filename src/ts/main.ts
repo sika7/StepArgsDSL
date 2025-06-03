@@ -54,7 +54,7 @@ function parseSteps(input: string): ParsedSteps {
     const line = lines[i].trim();
 
     // ステップヘッダー
-    const stepMatch = line.match(/^---\s*(.+?)\s*---$/);
+    const stepMatch = line.match(/^---\s*([A-Za-z0-9_]+)\s*---$/);
     if (stepMatch) {
       currentStep = stepMatch[1];
       result[currentStep] = {};
@@ -63,7 +63,7 @@ function parseSteps(input: string): ParsedSteps {
     }
 
     // 単行引数 - Unicode対応正規表現
-    const singleArgMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):((?:[^<\]]|\\.)*)\]$/);
+    const singleArgMatch = line.match(/^([A-Za-z0-9_]+)\[([A-Za-z0-9_]+):(.*?)\]$/);
     if (singleArgMatch) {
       const [, stepName, argName, value] = singleArgMatch;
       if (stepName === currentStep) {
@@ -79,7 +79,7 @@ function parseSteps(input: string): ParsedSteps {
     }
 
     // ヒアドキュメント開始 - Unicode対応正規表現
-    const heredocMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):<<<\s*$/);
+    const heredocMatch = line.match(/^([A-Za-z0-9_]+)\[([A-Za-z0-9_]+):<<<\s*$/);
     if (heredocMatch) {
       const [, stepName, argName] = heredocMatch;
       if (stepName === currentStep) {
@@ -220,7 +220,7 @@ function validateStepArgsScript(input: string, limits?: LengthLimits): Validatio
     }
 
     // ステップヘッダー
-    const stepMatch = line.match(/^---\s*(.+?)\s*---$/);
+    const stepMatch = line.match(/^---\s*([A-Za-z0-9_]+)\s*---$/);
     if (stepMatch) {
       const stepName = stepMatch[1];
 
@@ -251,7 +251,7 @@ function validateStepArgsScript(input: string, limits?: LengthLimits): Validatio
     }
 
     // 引数行（ステップ外）
-    if (line.match(/^([^\s\[\]::<>]+)\[/) && currentStep === "") {
+    if (line.match(/^([A-Za-z0-9_]+)\[/) && currentStep === "") {
       result.errors.push({
         type: "ORPHANED_ARGUMENT",
         line: lineNum,
@@ -261,7 +261,7 @@ function validateStepArgsScript(input: string, limits?: LengthLimits): Validatio
     }
 
     // 単行引数 - Unicode対応正規表現で検証
-    const singleArgMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):((?:[^<\]]|\\.)*)\]$/);
+    const singleArgMatch = line.match(/^([A-Za-z0-9_]+)\[([A-Za-z0-9_]+):(.*?)\]$/);
     if (singleArgMatch) {
       const [, stepName, argName, value] = singleArgMatch;
 
@@ -340,7 +340,7 @@ function validateStepArgsScript(input: string, limits?: LengthLimits): Validatio
     }
 
     // ヒアドキュメント開始 - Unicode対応正規表現で検証
-    const heredocMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):<<<(.*)$/);
+    const heredocMatch = line.match(/^([A-Za-z0-9_]+)\[([A-Za-z0-9_]+):<<<(.*)$/);
     if (heredocMatch) {
       const [, stepName, argName, extra] = heredocMatch;
 
