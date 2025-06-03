@@ -152,15 +152,6 @@ APIConfiguration[requestBody:<<<
 >>>]
 ```
 
-## 📘 Grammar (Regex)
-
-| Component            | Regex Pattern                 |
-| -------------------- | ----------------------------- |
-| Step Header          | `^---\s*(.+?)\s*---$`         |
-| Single-line Argument | `^(\S+)\[([^:]+):([^<].+)\]$` |
-| Multiline Start      | `^(\S+)\[([^:]+):<<<\s*$`     |
-| Multiline End        | `^>>>\]$`                     |
-
 ## 🧪 Sample Use Cases
 
 ### 🧠 Task Decomposition & Function Execution
