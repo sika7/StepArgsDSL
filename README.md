@@ -2,7 +2,74 @@
 
 **StepArgs DSL** (StepArgs Domain-Specific Language) is a lightweight, human-friendly DSL for defining task steps and arguments in a clean, structured format. It's designed for use with LLMs, autonomous agents, prompt templates, and script orchestration.
 
-Instead of relying on verbose or fragile JSON, StepArgs DSL offers a visually intuitive, line-based syntax that's easy to parse with regular expressions and readable for humans.
+## 🎯 Why StepArgs DSL?
+
+Traditional approaches often use JSON for task decomposition with LLMs, but this has several problems:
+
+- **JSON is complex and error-prone** - Managing brackets and quotes is cumbersome
+- **Difficult for LLMs to generate** - Syntax errors occur frequently
+- **Hard for humans to read** - Nested structures reduce readability
+
+StepArgs DSL is designed as a lightweight intermediate language that serves as an alternative to JSON.
+
+## 🔄 Actual Usage Flow
+
+```
+1. LLM decomposes tasks → Output in StepArgs DSL
+2. Parser extracts variables → Convert to structured data
+3. Map variables to JSON templates → Convert to tool execution format
+4. Execute programmatically
+```
+
+### 📝 Concrete Example
+
+#### 1. LLM Task Decomposition (StepArgs DSL Output)
+
+```text
+--- Article Search ---
+ArticleSearch[keywords:Latest AI Technology Trends]
+ArticleSearch[period:Past 1 week]
+ArticleSearch[count:5]
+
+--- Article Retrieval ---
+ArticleRetrieval[URL:1st search result]
+
+--- Summarization ---
+Summarization[maxLength:300]
+Summarization[format:bullet points]
+```
+
+#### 2. Variable Extraction by Parser
+
+```javascript
+{
+  "ArticleSearch": {
+    "keywords": "Latest AI Technology Trends",
+    "period": "Past 1 week",
+    "count": "5"
+  },
+  "ArticleRetrieval": {
+    "URL": "1st search result"
+  },
+  "Summarization": {
+    "maxLength": "300",
+    "format": "bullet points"
+  }
+}
+```
+
+#### 3. Map to Tool Execution JSON Template
+
+```json
+{
+  "function": "search_articles",
+  "parameters": {
+    "query": "Latest AI Technology Trends",
+    "date_range": "Past 1 week",
+    "limit": 5
+  }
+}
+```
 
 ## ✨ Features
 
@@ -153,13 +220,20 @@ from manufacturing to healthcare.
 
 [main.ts](./src/ts/main.ts)
 
+## 📝 Prompt Templates
+
+We also provide prompt templates for getting LLMs to decompose tasks using StepArgs DSL:
+
+- English: [prompt-template-en.md](./prompt-template-en.md)
+- Japanese: [prompt-template-ja.md](./prompt-template-ja.md)
+
 ## 📦 Use Cases
 
-- LLM prompt templates
-- Autonomous agent planning
-- AI pipelines and workflows
-- Command-line task definitions
-- Frontend state machine configs
+- **LLM task decomposition**: Intermediate representation for breaking complex tasks into steps
+- **Autonomous agent planning**: Structuring agent action plans
+- **AI pipelines**: Workflow configuration and execution
+- **Command-line task definitions**: Configuration files for script execution
+- **Frontend state machine configs**: UI state management configuration
 
 ## 📚 Roadmap
 
@@ -170,11 +244,10 @@ from manufacturing to healthcare.
 
 ## 📄 License
 
-MIT License.
+MIT License
 Free to use, adapt, and distribute.
 
 ## 💬 Feedback & Contributions
 
 We welcome improvements, issues, and ideas!
 Please submit via Pull Request or start a discussion.
-
