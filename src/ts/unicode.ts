@@ -251,7 +251,7 @@ function validateStepArgsScript(input: string, limits?: LengthLimits): Validatio
     }
 
     // 引数行（ステップ外）
-    if (line.match(/^([\p{L}\p{N}_\-]+)\[/) && currentStep === "") {
+    if (line.match(/^([\p{L}\p{N}_\-]+)\[/u) && currentStep === "") {
       result.errors.push({
         type: "ORPHANED_ARGUMENT",
         line: lineNum,
