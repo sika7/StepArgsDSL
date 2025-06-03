@@ -70,7 +70,8 @@ interface ValidationError {
     | "NESTED_HEREDOC"
     | "STEP_BOUNDARY_VIOLATION"
     | "ORPHANED_ARGUMENT"
-    | "DUPLICATE_STEP";
+    | "DUPLICATE_STEP"
+    | "UNRECOGNIZED_SYNTAX";
   line: number;
   message: string;
   stepName?: string;
@@ -198,7 +199,7 @@ function validateStepArgsScript(input: string): ValidationResult {
     // 認識できない行
     if (line !== "") {
       result.warnings.push({
-        type: "INVALID_HEREDOC_START", // 仮のタイプ
+        type: "UNRECOGNIZED_SYNTAX",
         line: lineNum,
         message: `認識できない構文です: "${line}"`,
       });
@@ -263,20 +264,29 @@ function parseStepArgsScript(input: string, options: ParseOptions = {}): FullPar
 // 使用例
 // ========================================
 
+// サンプル入力データ
+// const sampleInput = `--- 翻訳 ---
+// 翻訳[入力言語:日本語]
+// 翻訳[出力言語:英語]
+// 翻訳[内容:こんにちは、世界]
+//
+// --- 要約 ---
+// 要約[最大文字数:100]`;
+
 // 高速パース（エラー検証なし）
-const quickResult = parseSteps(inputText);
+// const quickResult = parseSteps(sampleInput);
 
 // 検証付きパース
-const validatedResult = parseStepArgsScript(inputText, { validate: true });
-if (!validatedResult.validation?.isValid) {
-  console.error("構文エラーがあります:", validatedResult.validation.errors);
-}
+// const validatedResult = parseStepArgsScript(sampleInput, { validate: true });
+// if (!validatedResult.validation?.isValid) {
+//   console.error("構文エラーがあります:", validatedResult.validation.errors);
+// }
 
 // 厳密モード（警告もエラー扱い）
-const strictResult = parseStepArgsScript(inputText, {
-  validate: true,
-  strict: true,
-});
+// const strictResult = parseStepArgsScript(sampleInput, {
+//   validate: true,
+//   strict: true,
+// });
 
 export {
   parseSteps,
