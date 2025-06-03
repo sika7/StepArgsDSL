@@ -34,9 +34,9 @@ function parseSteps(input: string): ParsedSteps {
     }
 
     // ヒアドキュメント開始
-    const heredocMatch = line.match(/^(\S+)\[([^:]+):<<<\s*$/);
+    const heredocMatch = line.match(/^(\S+)\[([^:]+):<<<(.*)$/);
     if (heredocMatch) {
-      const [, stepName, argName] = heredocMatch;
+      const [, stepName, argName, extra] = heredocMatch;
       if (stepName === currentStep) {
         i++;
         let content = "";
