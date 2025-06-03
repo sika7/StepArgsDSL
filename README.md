@@ -112,19 +112,19 @@ Including line breaks
 #### Basic Usage
 
 ```text
-— Translate —
+--— Translate —--
 Translate[sourceLanguage:Japanese]
 Translate[targetLanguage:English]
 Translate[text:こんにちは、世界]
 
-— Summarize —
+--— Summarize —--
 Summarize[maxLength:100]
 ```
 
 #### Multiline Content
 
 ```text
-— DocumentProcessing —
+—-- DocumentProcessing —--
 DocumentProcessing[content:<<<
 Artificial Intelligence (AI) has rapidly evolved in recent years.
 Machine learning, deep learning, and natural language processing
@@ -136,7 +136,7 @@ human-like text generation and understanding capabilities.
 >>>]
 DocumentProcessing[outputFormat:markdown]
 
-— APIConfiguration —
+--— APIConfiguration —--
 APIConfiguration[endpoint:https://api.example.com/v1/chat]
 APIConfiguration[requestBody:<<<
 {
@@ -157,21 +157,21 @@ APIConfiguration[requestBody:<<<
 ### 🧠 Task Decomposition & Function Execution
 
 ```text
-— Search —
+--— Search —--
 Search[keywords:AI in education]
 Search[limit:5]
 
-— Summarize —
+--— Summarize —--
 Summarize[maxLength:300]
 
-— Translate —
+--— Translate —--
 Translate[targetLanguage:English]
 ```
 
 ### 📈 Data Analysis with Complex Configuration
 
 ```text
-— DataAnalysis —
+—-- DataAnalysis —--
 DataAnalysis[config:<<<
 {
 "source": "analytics.csv",
@@ -192,10 +192,10 @@ DataAnalysis[chartTitle:2024 Sales Trends]
 ### 🤖 LLM Prompt Chaining
 
 ```text
-— GenerateOutline —
+—-- GenerateOutline —--
 GenerateOutline[title:The Future of Robotics]
 
-— WriteSection —
+—-- WriteSection —--
 WriteSection[section:Introduction]
 WriteSection[length:150]
 WriteSection[content:<<<
