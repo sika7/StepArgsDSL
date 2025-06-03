@@ -209,7 +209,9 @@ WriteSection[content:<<<
 
 ## 🔄 パーサー実装（TypeScript）
 
-[main.ts](./src/ts/main.ts) - **サンプル実装**で、UTF-8文字に対応。プロダクション用途では、より高度なUnicode処理の実装を推奨。
+- **サンプル実装**で、UTF-8文字に対応。プロダクション用途では、より高度なUnicode処理の実装を推奨。
+[simple.ts](./src/ts/simple.ts)
+[unicode.ts](../src/ts/unicode.ts)
 
 ## 📝 プロンプトテンプレート
 

@@ -209,7 +209,9 @@ from manufacturing to healthcare.
 
 ## 🔄 Parser Implementation (TypeScript)
 
-[main.ts](./src/ts/main.ts) - **Sample implementation** supporting UTF-8 characters. For production use, we recommend implementing more robust Unicode processing.
+- **Sample implementation** supporting UTF-8 characters. For production use, we recommend implementing more robust Unicode processing.
+[simple.ts](./src/ts/simple.ts)
+[unicode.ts](../src/ts/unicode.ts)
 
 ## 📝 Prompt Templates
 
