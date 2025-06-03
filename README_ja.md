@@ -209,7 +209,7 @@ WriteSection[content:<<<
 
 ## 🔄 パーサー実装（TypeScript）
 
-[main.ts](./src/ts/main.ts) - **サンプル実装**で、基本ASCII文字のみ対応。プロダクション用途では、Unicode完全対応パーサーの実装を推奨。多言語対応は実装者に委ねる。
+[main.ts](./src/ts/main.ts) - **サンプル実装**で、UTF-8文字に対応。プロダクション用途では、より高度なUnicode処理の実装を推奨。
 
 ## 📝 プロンプトテンプレート
 

@@ -209,7 +209,7 @@ from manufacturing to healthcare.
 
 ## 🔄 Parser Implementation (TypeScript)
 
-[main.ts](./src/ts/main.ts) - **Sample implementation** supporting basic ASCII characters. For production use, we recommend implementing a full Unicode-compatible parser. Multi-language support is left to implementers.
+[main.ts](./src/ts/main.ts) - **Sample implementation** supporting UTF-8 characters. For production use, we recommend implementing more robust Unicode processing.
 
 ## 📝 Prompt Templates
 
