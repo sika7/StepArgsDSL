@@ -105,6 +105,17 @@ function parseSteps(input: string): ParsedSteps {
 }
 
 // ========================================
+// 長さ制限設定
+// ========================================
+
+interface LengthLimits {
+  stepName?: number; // ステップ名の最大文字数
+  argName?: number; // 引数名の最大文字数
+  argValueSingle?: number; // 単行引数値の最大文字数
+  argValueMulti?: number; // 複数行引数値の最大文字数
+}
+
+// ========================================
 // エラー検証（詳細・厳密）
 // ========================================
 
@@ -121,7 +132,10 @@ interface ValidationError {
     | "EMPTY_STEP_BLOCK"
     | "INVALID_ESCAPE_SEQUENCE"
     | "UNTERMINATED_ESCAPE"
-    | "UNRECOGNIZED_SYNTAX";
+    | "UNRECOGNIZED_SYNTAX"
+    | "STEP_NAME_TOO_LONG"
+    | "ARG_NAME_TOO_LONG"
+    | "ARG_VALUE_TOO_LONG";
   line: number;
   message: string;
   stepName?: string;
@@ -134,7 +148,7 @@ interface ValidationResult {
   warnings: ValidationError[];
 }
 
-function validateStepArgsScript(input: string): ValidationResult {
+function validateStepArgsScript(input: string, limits?: LengthLimits): ValidationResult {
   const result: ValidationResult = {
     isValid: true,
     errors: [],
@@ -146,6 +160,7 @@ function validateStepArgsScript(input: string): ValidationResult {
   let inHeredoc = false;
   let heredocStartLine = -1;
   let heredocInfo = { stepName: "", argName: "" };
+  let heredocContent = "";
   const encounteredSteps = new Set<string>();
   const stepArguments = new Map<string, Set<string>>();
 
@@ -160,8 +175,24 @@ function validateStepArgsScript(input: string): ValidationResult {
     if (inHeredoc) {
       if (line === ">>>]") {
         inHeredoc = false;
+
+        // ヒアドキュメント終了時に長さチェック
+        if (limits?.argValueMulti && heredocContent.length > limits.argValueMulti) {
+          result.warnings.push({
+            type: "ARG_VALUE_TOO_LONG",
+            line: heredocStartLine,
+            message: `複数行引数値が長すぎます: ${heredocContent.length}文字 (制限: ${limits.argValueMulti}文字)`,
+            stepName: heredocInfo.stepName,
+            argName: heredocInfo.argName,
+          });
+        }
+
+        heredocContent = "";
         continue;
       }
+
+      // ヒアドキュメント内容を蓄積
+      heredocContent += line + "\n";
 
       // ヒアドキュメント中にステップヘッダー
       if (line.match(/^---\s*(.+?)\s*---$/)) {
@@ -193,6 +224,16 @@ function validateStepArgsScript(input: string): ValidationResult {
     if (stepMatch) {
       const stepName = stepMatch[1];
 
+      // ステップ名長さチェック
+      if (limits?.stepName && stepName.length > limits.stepName) {
+        result.warnings.push({
+          type: "STEP_NAME_TOO_LONG",
+          line: lineNum,
+          message: `ステップ名が長すぎます: ${stepName.length}文字 (制限: ${limits.stepName}文字)`,
+          stepName: stepName,
+        });
+      }
+
       // 重複ステップチェック
       if (encounteredSteps.has(stepName)) {
         result.warnings.push({
@@ -223,7 +264,29 @@ function validateStepArgsScript(input: string): ValidationResult {
     const singleArgMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):((?:[^<\]]|\\.)*)\]$/);
     if (singleArgMatch) {
       const [, stepName, argName, value] = singleArgMatch;
-      
+
+      // 引数名長さチェック
+      if (limits?.argName && argName.length > limits.argName) {
+        result.warnings.push({
+          type: "ARG_NAME_TOO_LONG",
+          line: lineNum,
+          message: `引数名が長すぎます: ${argName.length}文字 (制限: ${limits.argName}文字)`,
+          stepName: stepName,
+          argName: argName,
+        });
+      }
+
+      // 引数値長さチェック
+      if (limits?.argValueSingle && value.length > limits.argValueSingle) {
+        result.warnings.push({
+          type: "ARG_VALUE_TOO_LONG",
+          line: lineNum,
+          message: `単行引数値が長すぎます: ${value.length}文字 (制限: ${limits.argValueSingle}文字)`,
+          stepName: stepName,
+          argName: argName,
+        });
+      }
+
       // ステップ名不一致チェック
       if (stepName !== currentStep) {
         result.warnings.push({
@@ -281,6 +344,17 @@ function validateStepArgsScript(input: string): ValidationResult {
     if (heredocMatch) {
       const [, stepName, argName, extra] = heredocMatch;
 
+      // 引数名長さチェック
+      if (limits?.argName && argName.length > limits.argName) {
+        result.warnings.push({
+          type: "ARG_NAME_TOO_LONG",
+          line: lineNum,
+          message: `引数名が長すぎます: ${argName.length}文字 (制限: ${limits.argName}文字)`,
+          stepName: stepName,
+          argName: argName,
+        });
+      }
+
       // ステップ名不一致チェック
       if (stepName !== currentStep) {
         result.warnings.push({
@@ -320,6 +394,7 @@ function validateStepArgsScript(input: string): ValidationResult {
       inHeredoc = true;
       heredocStartLine = lineNum;
       heredocInfo = { stepName, argName };
+      heredocContent = "";
       continue;
     }
 
@@ -367,6 +442,7 @@ function validateStepArgsScript(input: string): ValidationResult {
 interface ParseOptions {
   validate?: boolean;
   strict?: boolean; // 警告もエラー扱い
+  limits?: LengthLimits; // 長さ制限設定
 }
 
 interface FullParseResult {
@@ -381,7 +457,7 @@ function parseStepArgsScript(input: string, options: ParseOptions = {}): FullPar
 
   // バリデーション実行
   if (options.validate) {
-    result.validation = validateStepArgsScript(input);
+    result.validation = validateStepArgsScript(input, options.limits);
 
     // エラーがある場合の動作
     if (!result.validation.isValid) {
@@ -404,6 +480,31 @@ function parseStepArgsScript(input: string, options: ParseOptions = {}): FullPar
 
   return result;
 }
+
+// ========================================
+// プリセット制限値
+// ========================================
+
+const DEFAULT_LIMITS: LengthLimits = {
+  stepName: 128,
+  argName: 64,
+  argValueSingle: 16384,
+  argValueMulti: 1048576,
+};
+
+const WEB_UI_LIMITS: LengthLimits = {
+  stepName: 200,
+  argName: 100,
+  argValueSingle: 50000,
+  argValueMulti: 500000,
+};
+
+const STRICT_LIMITS: LengthLimits = {
+  stepName: 64,
+  argName: 32,
+  argValueSingle: 4096,
+  argValueMulti: 262144,
+};
 
 // ========================================
 // 使用例
@@ -433,15 +534,35 @@ function parseStepArgsScript(input: string, options: ParseOptions = {}): FullPar
 //   strict: true,
 // });
 
+// 長さ制限付きパース
+// const limitedResult = parseStepArgsScript(sampleInput, {
+//   validate: true,
+//   limits: DEFAULT_LIMITS,
+// });
+
+// カスタム制限
+// const customResult = parseStepArgsScript(sampleInput, {
+//   validate: true,
+//   limits: {
+//     stepName: 50,
+//     argName: 30,
+//     argValueSingle: 1000,
+//   },
+// });
+
 export {
   parseSteps,
   validateStepArgsScript,
   parseStepArgsScript,
   unescapeValue,
   escapeValue,
+  DEFAULT_LIMITS,
+  WEB_UI_LIMITS,
+  STRICT_LIMITS,
   type ParsedSteps,
   type ValidationError,
   type ValidationResult,
   type ParseOptions,
   type FullParseResult,
+  type LengthLimits,
 };
