@@ -13,18 +13,18 @@
 function unescapeValue(value: string): string {
   return value.replace(/\\(.)/g, (match, char) => {
     switch (char) {
-      case '[':
-        return '[';
-      case ']':
-        return ']';
-      case ':':
-        return ':';
-      case '<':
-        return '<';
-      case '>':
-        return '>';
-      case '\\':
-        return '\\';
+      case "[":
+        return "[";
+      case "]":
+        return "]";
+      case ":":
+        return ":";
+      case "<":
+        return "<";
+      case ">":
+        return ">";
+      case "\\":
+        return "\\";
       default:
         throw new Error(`Invalid escape sequence: \\${char}`);
     }
@@ -35,7 +35,7 @@ function unescapeValue(value: string): string {
  * 特殊文字をエスケープする
  */
 function escapeValue(value: string): string {
-  return value.replace(/[\[\]::<>\\]/g, '\\$&');
+  return value.replace(/[\[\]::<>\\]/g, "\\$&");
 }
 
 // ========================================
@@ -92,7 +92,7 @@ function parseSteps(input: string): ParsedSteps {
           i++;
         }
 
-        result[currentStep][argName.trim()] = content.replace(/\n$/, '');
+        result[currentStep][argName.trim()] = content.replace(/\n$/, "");
       }
       i++;
       continue;
