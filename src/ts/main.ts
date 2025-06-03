@@ -1,4 +1,44 @@
 // ========================================
+// StepArgs DSL パーサー実装
+// Unicode完全対応、エスケープ処理対応
+// ========================================
+
+// ========================================
+// エスケープ処理ユーティリティ
+// ========================================
+
+/**
+ * エスケープシーケンスを解除する
+ */
+function unescapeValue(value: string): string {
+  return value.replace(/\\(.)/g, (match, char) => {
+    switch (char) {
+      case '[':
+        return '[';
+      case ']':
+        return ']';
+      case ':':
+        return ':';
+      case '<':
+        return '<';
+      case '>':
+        return '>';
+      case '\\':
+        return '\\';
+      default:
+        throw new Error(`Invalid escape sequence: \\${char}`);
+    }
+  });
+}
+
+/**
+ * 特殊文字をエスケープする
+ */
+function escapeValue(value: string): string {
+  return value.replace(/[\[\]::<>\\]/g, '\\$&');
+}
+
+// ========================================
 // 基本パーサー（高速・軽量）
 // ========================================
 
@@ -22,21 +62,26 @@ function parseSteps(input: string): ParsedSteps {
       continue;
     }
 
-    // 単行引数
-    const singleArgMatch = line.match(/^(\S+)\[([^:]+):([^<].+)\]$/);
+    // 単行引数 - Unicode対応正規表現
+    const singleArgMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):((?:[^<\]]|\\.)*)\]$/);
     if (singleArgMatch) {
       const [, stepName, argName, value] = singleArgMatch;
       if (stepName === currentStep) {
-        result[currentStep][argName.trim()] = value.trim();
+        try {
+          result[currentStep][argName.trim()] = unescapeValue(value.trim());
+        } catch (error) {
+          // エスケープエラーは無視して生の値を使用（基本パーサーモード）
+          result[currentStep][argName.trim()] = value.trim();
+        }
       }
       i++;
       continue;
     }
 
-    // ヒアドキュメント開始
-    const heredocMatch = line.match(/^(\S+)\[([^:]+):<<<(.*)$/);
+    // ヒアドキュメント開始 - Unicode対応正規表現
+    const heredocMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):<<<\s*$/);
     if (heredocMatch) {
-      const [, stepName, argName, extra] = heredocMatch;
+      const [, stepName, argName] = heredocMatch;
       if (stepName === currentStep) {
         i++;
         let content = "";
@@ -47,7 +92,7 @@ function parseSteps(input: string): ParsedSteps {
           i++;
         }
 
-        result[currentStep][argName.trim()] = content.replace(/\n$/, "");
+        result[currentStep][argName.trim()] = content.replace(/\n$/, '');
       }
       i++;
       continue;
@@ -71,6 +116,11 @@ interface ValidationError {
     | "STEP_BOUNDARY_VIOLATION"
     | "ORPHANED_ARGUMENT"
     | "DUPLICATE_STEP"
+    | "DUPLICATE_ARGUMENT"
+    | "STEP_NAME_MISMATCH"
+    | "EMPTY_STEP_BLOCK"
+    | "INVALID_ESCAPE_SEQUENCE"
+    | "UNTERMINATED_ESCAPE"
     | "UNRECOGNIZED_SYNTAX";
   line: number;
   message: string;
@@ -97,6 +147,7 @@ function validateStepArgsScript(input: string): ValidationResult {
   let heredocStartLine = -1;
   let heredocInfo = { stepName: "", argName: "" };
   const encounteredSteps = new Set<string>();
+  const stepArguments = new Map<string, Set<string>>();
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -154,11 +205,12 @@ function validateStepArgsScript(input: string): ValidationResult {
 
       currentStep = stepName;
       encounteredSteps.add(stepName);
+      stepArguments.set(stepName, new Set());
       continue;
     }
 
     // 引数行（ステップ外）
-    if (line.match(/^(\S+)\[/) && currentStep === "") {
+    if (line.match(/^([^\s\[\]::<>]+)\[/) && currentStep === "") {
       result.errors.push({
         type: "ORPHANED_ARGUMENT",
         line: lineNum,
@@ -167,17 +219,92 @@ function validateStepArgsScript(input: string): ValidationResult {
       continue;
     }
 
-    // 単行引数
-    const singleArgMatch = line.match(/^(\S+)\[([^:]+):([^<].+)\]$/);
+    // 単行引数 - Unicode対応正規表現で検証
+    const singleArgMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):((?:[^<\]]|\\.)*)\]$/);
     if (singleArgMatch) {
-      // 基本的な検証はここで可能
+      const [, stepName, argName, value] = singleArgMatch;
+      
+      // ステップ名不一致チェック
+      if (stepName !== currentStep) {
+        result.warnings.push({
+          type: "STEP_NAME_MISMATCH",
+          line: lineNum,
+          message: `ステップ名が不一致です。期待値: "${currentStep}", 実際: "${stepName}"`,
+          stepName: stepName,
+          argName: argName,
+        });
+      }
+
+      // 引数重複チェック
+      const args = stepArguments.get(currentStep);
+      if (args && args.has(argName)) {
+        result.warnings.push({
+          type: "DUPLICATE_ARGUMENT",
+          line: lineNum,
+          message: `引数 "${argName}" が重複しています`,
+          stepName: currentStep,
+          argName: argName,
+        });
+      } else if (args) {
+        args.add(argName);
+      }
+
+      // エスケープ検証
+      try {
+        unescapeValue(value);
+      } catch (error) {
+        result.errors.push({
+          type: "INVALID_ESCAPE_SEQUENCE",
+          line: lineNum,
+          message: error instanceof Error ? error.message : "無効なエスケープシーケンス",
+          stepName: currentStep,
+          argName: argName,
+        });
+      }
+
+      // 行末エスケープチェック
+      if (value.endsWith("\\")) {
+        result.errors.push({
+          type: "UNTERMINATED_ESCAPE",
+          line: lineNum,
+          message: "行末でエスケープ文字が未完了です",
+          stepName: currentStep,
+          argName: argName,
+        });
+      }
+
       continue;
     }
 
-    // ヒアドキュメント開始
-    const heredocMatch = line.match(/^(\S+)\[([^:]+):<<<(.*)$/);
+    // ヒアドキュメント開始 - Unicode対応正規表現で検証
+    const heredocMatch = line.match(/^([^\s\[\]::<>]+)\[([^\[\]::<>\r\n]+?):<<<(.*)$/);
     if (heredocMatch) {
       const [, stepName, argName, extra] = heredocMatch;
+
+      // ステップ名不一致チェック
+      if (stepName !== currentStep) {
+        result.warnings.push({
+          type: "STEP_NAME_MISMATCH",
+          line: lineNum,
+          message: `ステップ名が不一致です。期待値: "${currentStep}", 実際: "${stepName}"`,
+          stepName: stepName,
+          argName: argName,
+        });
+      }
+
+      // 引数重複チェック
+      const args = stepArguments.get(currentStep);
+      if (args && args.has(argName)) {
+        result.warnings.push({
+          type: "DUPLICATE_ARGUMENT",
+          line: lineNum,
+          message: `引数 "${argName}" が重複しています`,
+          stepName: currentStep,
+          argName: argName,
+        });
+      } else if (args) {
+        args.add(argName);
+      }
 
       // <<<の後に余計な文字
       if (extra.trim() !== "") {
@@ -217,6 +344,18 @@ function validateStepArgsScript(input: string): ValidationResult {
     });
   }
 
+  // 空のステップブロックチェック
+  for (const [stepName, args] of stepArguments.entries()) {
+    if (args.size === 0) {
+      result.warnings.push({
+        type: "EMPTY_STEP_BLOCK",
+        line: 0, // 行番号は不明
+        message: `ステップ "${stepName}" に引数がありません`,
+        stepName: stepName,
+      });
+    }
+  }
+
   result.isValid = result.errors.length === 0;
   return result;
 }
@@ -251,6 +390,12 @@ function parseStepArgsScript(input: string, options: ParseOptions = {}): FullPar
         return result;
       }
       // 通常モード：エラーがあっても可能な限りパース
+    }
+
+    // 厳密モードで警告もエラー扱い
+    if (options.strict && result.validation.warnings.length > 0) {
+      result.validation.isValid = false;
+      return result;
     }
   }
 
@@ -292,6 +437,8 @@ export {
   parseSteps,
   validateStepArgsScript,
   parseStepArgsScript,
+  unescapeValue,
+  escapeValue,
   type ParsedSteps,
   type ValidationError,
   type ValidationResult,
