@@ -36,10 +36,10 @@ Summarize[maxLength:100]
 
 ## 📘 Grammar (Regex)
 
-| Component    | Regex Pattern                         |
-|--------------|----------------------------------------|
-| Step Header  | `^---\s*(.+?)\s*---$`                  |
-| Argument Line| `^(\S+)$begin:math:display$(.+?):(.+?)$end:math:display$$`               |
+| Component     | Regex Pattern                                              |
+| ------------- | ---------------------------------------------------------- |
+| Step Header   | `^---\s*(.+?)\s*---$`                                      |
+| Argument Line | `^(\S+)$begin:math:display$(.+?):(.+?)$end:math:display$$` |
 
 ## 🧪 Sample Use Cases
 
@@ -102,34 +102,27 @@ function parseSteps(input: string): Record<string, Record<string, string>> {
 }
 ```
 
-
-
 ## 📦 Use Cases
+
 - LLM prompt templates
 - Autonomous agent planning
 - AI pipelines and workflows
 - Command-line task definitions
 - Frontend state machine configs
 
-
-
 ## 📚 Roadmap
+
 - Type and validation schema (via YAML or JSON)
 - LLM auto-generation templates
 - DSL → JSON converter
 - Syntax highlighting & VS Code extension
-
-
 
 ## 📄 License
 
 MIT License.
 Free to use, adapt, and distribute.
 
-
-
 ## 💬 Feedback & Contributions
 
 We welcome improvements, issues, and ideas!
 Please submit via Pull Request or start a discussion.
-
