@@ -14,6 +14,7 @@ Please follow the instructions below to break down the given task into steps and
   >>>]
   ```
 - Use plain values as-is (strings, numbers, URLs, etc.)
+- Values are treated as strings (numbers, URLs, Unicode characters including emojis can be used freely)
 - Do not include any explanations or notes. Output only the intermediate format
 
 [Example]
