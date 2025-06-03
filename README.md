@@ -4,8 +4,6 @@
 
 Instead of relying on verbose or fragile JSON, StepArgs DSL offers a visually intuitive, line-based syntax that's easy to parse with regular expressions and readable for humans.
 
----
-
 ## ✨ Features
 
 - ✅ **Simple syntax** using step blocks and key-value pairs
@@ -13,8 +11,6 @@ Instead of relying on verbose or fragile JSON, StepArgs DSL offers a visually in
 - ✅ **Regex-compatible**: ideal for fast prototyping
 - ✅ **Structured execution**: suitable for function calls, workflows, and tool chains
 - ✅ **Human-readable**: excellent for non-technical users and documentation
-
----
 
 ## 🔧 Syntax Overview
 
@@ -38,16 +34,12 @@ Translate[text:こんにちは、世界]
 — Summarize —
 Summarize[maxLength:100]
 
----
-
 ## 📘 Grammar (Regex)
 
 | Component    | Regex Pattern                         |
 |--------------|----------------------------------------|
 | Step Header  | `^---\s*(.+?)\s*---$`                  |
 | Argument Line| `^(\S+)$begin:math:display$(.+?):(.+?)$end:math:display$$`               |
-
----
 
 ## 🧪 Sample Use Cases
 
@@ -82,8 +74,6 @@ GenerateOutline[title:The Future of Robotics]
 — WriteSection —
 WriteSection[section:Introduction]
 WriteSection[length:150]
-
----
 
 ## 🔄 Parser Example (TypeScript)
 
@@ -142,8 +132,4 @@ Free to use, adapt, and distribute.
 
 We welcome improvements, issues, and ideas!
 Please submit via Pull Request or start a discussion.
-
----
-
-Would you like a GitHub-ready repo structure, badge integration, or package.json starter for CLI/tooling as well?
 
