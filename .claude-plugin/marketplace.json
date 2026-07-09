@@ -1,0 +1,14 @@
+{
+  "name": "stepargsdsl",
+  "owner": {
+    "name": "sika7"
+  },
+  "description": "StepArgs DSL — a lightweight LLM-friendly intermediate language, CLI, and Claude Code skill.",
+  "plugins": [
+    {
+      "name": "stepargsdsl",
+      "source": "./skill",
+      "description": "Break a task into steps/arguments using StepArgs DSL, then parse and validate it deterministically via a bundled CLI."
+    }
+  ]
+}
