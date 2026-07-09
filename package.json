@@ -1,0 +1,37 @@
+{
+  "name": "stepargsdsl",
+  "version": "0.1.0",
+  "description": "StepArgs DSL parser and CLI — a lightweight intermediate language for LLM-friendly structured output.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sika7/StepArgsDSL.git"
+  },
+  "bin": {
+    "stepargsdsl": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "docs",
+    "prompt-template-ja.md",
+    "prompt-template-en.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:lib": "tsc -p tsconfig.json",
+    "build:cli": "esbuild src/ts/cli.ts --bundle --platform=node --outfile=dist/cli.js",
+    "build:skill": "node scripts/build-skill.mjs",
+    "build": "npm run build:lib && npm run build:cli && npm run build:skill",
+    "pretest": "npm run build:lib && npm run build:cli",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "esbuild": "^0.28.1",
+    "typescript": "^7.0.2"
+  }
+}

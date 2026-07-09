@@ -213,6 +213,58 @@ from manufacturing to healthcare.
 [simple.ts](./src/ts/simple.ts)
 [unicode.ts](../src/ts/unicode.ts)
 
+## 🖥️ CLI Usage
+
+Install as a dependency or run directly with `npx`:
+
+```bash
+npm install -g stepargsdsl
+# or
+npx stepargsdsl --engine unicode < input.txt
+```
+
+The CLI reads StepArgs DSL text from stdin, parses (and by default validates) it, and always prints the result as JSON to stdout.
+
+### Flags
+
+| Flag | Values | Default | Description |
+| --- | --- | --- | --- |
+| `--engine` | `unicode` \| `simple` | `unicode` | Parser to use. `simple` only accepts ASCII alphanumeric + underscore identifiers. |
+| `--no-validate` | — | off | Skip validation and parse only (the output omits the `validation` key entirely). |
+| `--strict` | — | off | Promote warnings to failures. |
+| `--limits` | `default` \| `web-ui` \| `strict` \| `none` | `default` | Length-limit preset applied during validation. |
+
+### Example
+
+```bash
+echo '--- Search ---
+Search[keywords:AI in education]
+Search[limit:5]' | npx stepargsdsl --engine simple
+```
+
+```json
+{
+  "steps": {
+    "Search": {
+      "keywords": "AI in education",
+      "limit": "5"
+    }
+  },
+  "validation": {
+    "isValid": true,
+    "errors": [],
+    "warnings": []
+  }
+}
+```
+
+### Exit codes
+
+- `0` — parsing (and validation, if enabled) succeeded.
+- `1` — validation failed, or the CLI itself errored (bad flags, unreadable input). Check `validation.isValid` rather than `validation.errors.length`, since `--strict` can set `isValid: false` from warnings alone with `errors` left empty.
+
+Errors and warnings are also printed to stderr as `error: line N: message` / `warning: line N: message` for quick inspection without parsing the JSON.
+
 ## 📝 Prompt Templates
 
 We also provide prompt templates for getting LLMs to decompose tasks using StepArgs DSL:
