@@ -25,7 +25,9 @@
     "build:lib": "tsc -p tsconfig.json",
     "build:cli": "esbuild src/ts/cli.ts --bundle --platform=node --outfile=dist/cli.js",
     "build:skill": "node scripts/build-skill.mjs",
-    "build": "npm run build:lib && npm run build:cli && npm run build:skill"
+    "build": "npm run build:lib && npm run build:cli && npm run build:skill",
+    "pretest": "npm run build:lib && npm run build:cli",
+    "test": "node --test"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
