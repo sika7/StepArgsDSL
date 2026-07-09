@@ -28,6 +28,7 @@
     "build": "npm run build:lib && npm run build:cli && npm run build:skill"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "esbuild": "^0.28.1",
     "typescript": "^7.0.2"
   }
