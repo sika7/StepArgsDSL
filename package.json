@@ -14,7 +14,8 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "docs",
+    "docs/SPEC.md",
+    "docs/USAGE_EXAMPLE.md",
     "prompt-template-ja.md",
     "prompt-template-en.md"
   ],

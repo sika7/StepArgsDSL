@@ -21,7 +21,7 @@ description: Breaks down a task into steps and arguments using StepArgs DSL, a l
 1. Read the chosen prompt template from `references/` and generate the DSL text in-context, substituting the task description for the template's placeholder.
 2. Run the CLI, piping the generated DSL text in via stdin:
    ```bash
-   node skill/scripts/cli.js --engine unicode <<'EOF'
+   node scripts/cli.js --engine unicode <<'EOF'
    <generated DSL text>
    EOF
    ```

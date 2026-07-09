@@ -272,6 +272,29 @@ We also provide prompt templates for getting LLMs to decompose tasks using StepA
 - English: [prompt-template-en.md](./prompt-template-en.md)
 - Japanese: [prompt-template-ja.md](./prompt-template-ja.md)
 
+## 🤖 Claude Code Skill
+
+This repo ships a Claude Code skill (`skill/`) that generates a task breakdown as StepArgs DSL text in-context and delegates parsing/validation to the bundled CLI, so Claude never hand-parses the DSL itself.
+
+### Install via plugin marketplace
+
+```
+/plugin marketplace add sika7/StepArgsDSL
+/plugin install stepargsdsl@stepargsdsl
+```
+
+### Install manually
+
+```bash
+git clone https://github.com/sika7/StepArgsDSL
+cp -r StepArgsDSL/skill ~/.claude/skills/stepargsdsl   # user scope
+# or
+cp -r StepArgsDSL/skill ./.claude/skills/stepargsdsl   # project scope
+```
+
+- Manual copy: invoke with `/stepargsdsl` (based on the destination directory name).
+- Plugin install: invoke with `/stepargsdsl:stepargs-dsl` (namespaced as `/<plugin-name>:<skill-name>`, where `stepargs-dsl` is the `name` in `skill/SKILL.md`'s frontmatter).
+
 ## 📦 Use Cases
 
 - **LLM task decomposition**: Intermediate representation for breaking complex tasks into steps

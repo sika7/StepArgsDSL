@@ -1,0 +1,12 @@
+{
+  "name": "stepargsdsl",
+  "description": "Break a task into steps/arguments using StepArgs DSL, then parse and validate it deterministically via a bundled CLI.",
+  "version": "0.1.0",
+  "author": {
+    "name": "sika7"
+  },
+  "homepage": "https://github.com/sika7/StepArgsDSL",
+  "repository": "https://github.com/sika7/StepArgsDSL",
+  "license": "MIT",
+  "skills": ["./"]
+}
