@@ -213,6 +213,58 @@ WriteSection[content:<<<
 [simple.ts](./src/ts/simple.ts)
 [unicode.ts](../src/ts/unicode.ts)
 
+## 🖥️ CLIの使い方
+
+依存パッケージとしてインストールするか、`npx`で直接実行できます：
+
+```bash
+npm install -g stepargsdsl
+# または
+npx stepargsdsl --engine unicode < input.txt
+```
+
+CLIは標準入力からStepArgs DSLのテキストを読み込み、パース（デフォルトでは検証も）した結果を常にJSONとして標準出力に出力します。
+
+### フラグ
+
+| フラグ | 値 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `--engine` | `unicode` \| `simple` | `unicode` | 使用するパーサー。`simple`はASCII英数字・アンダースコアの識別子のみ対応。 |
+| `--no-validate` | — | off | 検証をスキップしパースのみ行う（出力から`validation`キー自体が省略される）。 |
+| `--strict` | — | off | 警告をエラー扱いに昇格させる。 |
+| `--limits` | `default` \| `web-ui` \| `strict` \| `none` | `default` | 検証時に適用する長さ制限のプリセット。 |
+
+### 例
+
+```bash
+echo '--- 検索 ---
+検索[キーワード:教育におけるAI]
+検索[件数:5]' | npx stepargsdsl --engine unicode
+```
+
+```json
+{
+  "steps": {
+    "検索": {
+      "キーワード": "教育におけるAI",
+      "件数": "5"
+    }
+  },
+  "validation": {
+    "isValid": true,
+    "errors": [],
+    "warnings": []
+  }
+}
+```
+
+### 終了コード
+
+- `0` — パース（有効な場合は検証も）に成功。
+- `1` — 検証に失敗、またはCLI自体がエラーになった場合（不正なフラグ、読み込み不能な入力など）。`validation.errors.length`ではなく`validation.isValid`を確認すること。`--strict`指定時は`errors`が空のまま警告のみで`isValid: false`になることがあるため。
+
+エラー・警告はJSONをパースしなくても素早く確認できるよう、`error: line N: message` / `warning: line N: message`の形式でstderrにも出力されます。
+
 ## 📝 プロンプトテンプレート
 
 LLMにStepArgs DSLでタスクを分解させるためのプロンプトテンプレートも用意しています：
